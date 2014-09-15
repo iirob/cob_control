@@ -66,8 +66,6 @@ CollisionVelocityFilter::CollisionVelocityFilter()
 
   ros::NodeHandle local_costmap_nh_(costmap_parameter_source);
   
-  nh_.param("costmap_obstacle_treshold", costmap_obstacle_treshold_, 50);
-
   // implementation of topics to publish (command for base and list of relevant obstacles)
   topic_pub_command_ = nh_.advertise<geometry_msgs::Twist>("command", 1);
   topic_pub_relevant_obstacles_ = nh_.advertise<nav_msgs::OccupancyGrid>("relevant_obstacles_grid", 1);
@@ -84,7 +82,7 @@ CollisionVelocityFilter::CollisionVelocityFilter()
   double footprint_update_frequency;
   if(!nh_.hasParam("footprint_update_frequency")) ROS_WARN("Used default parameter for footprint_update_frequency [1.0 Hz].");
   nh_.param("footprint_update_frequency",footprint_update_frequency,1.0);
-  get_footprint_timer_ = nh_.createTimer(ros::Duration(1/footprint_update_frequency), boost::bind(&CollisionVelocityFilter::getFootprintServiceCB, this, _1));
+  get_footprint_timer_ = nh_.createTimer(ros::Rate(footprint_update_frequency), boost::bind(&CollisionVelocityFilter::getFootprintServiceCB, this, _1));
 
   // read parameters from parameter server
   // parameters from costmap
@@ -98,6 +96,9 @@ CollisionVelocityFilter::CollisionVelocityFilter()
   nh_.param("influence_radius", influence_radius_, 1.5);
   closest_obstacle_dist_ = influence_radius_;
   closest_obstacle_angle_ = 0.0;
+  
+  if(!nh_.hasParam("influence_radius")) ROS_WARN("Used default parameter for costmap_obstacle_treshold [50]");
+  nh_.param("costmap_obstacle_treshold", costmap_obstacle_treshold_, 50);
 
   // parameters for obstacle avoidence and velocity adjustment
   if(!nh_.hasParam("stop_threshold")) ROS_WARN("Used default parameter for stop_threshold [0.1 m]");
@@ -237,6 +238,8 @@ CollisionVelocityFilter::dynamicReconfigureCB(const cob_collision_velocity_filte
 {
   pthread_mutex_lock(&m_mutex);
 
+  costmap_obstacle_treshold_ = config.costmap_obstacle_treshold;
+  
   stop_threshold_ = config.stop_threshold;
   obstacle_damping_dist_ = config.obstacle_damping_dist;
   if(obstacle_damping_dist_ <= stop_threshold_) {
@@ -366,14 +369,15 @@ void CollisionVelocityFilter::performControllerStep() {
 
 void CollisionVelocityFilter::obstacleHandler() {
   pthread_mutex_lock(&m_mutex);
+  closest_obstacle_dist_ = influence_radius_;
+  
   if(!costmap_received_) {
     ROS_WARN("No costmap has been received by cob_collision_velocity_filter, the robot will drive without obstacle avoidance!");
-    closest_obstacle_dist_ = influence_radius_;
-
+    
     pthread_mutex_unlock(&m_mutex);
     return;
   }
-  closest_obstacle_dist_ = influence_radius_;
+  
   pthread_mutex_unlock(&m_mutex);
 
   double cur_distance_to_center, cur_distance_to_border;
