@@ -544,6 +544,7 @@ std::vector<geometry_msgs::Point> CollisionVelocityFilter::loadRobotFootprint(ro
 
   std::string padding_param, footprint_param;
   if(!node.searchParam("footprint_padding", padding_param))
+    ROS_WARN("'footprint_padding' paramerter not found! Using default padding value: 0.01"
     padding = 0.01;
   else
     node.param(padding_param, padding, 0.01);
