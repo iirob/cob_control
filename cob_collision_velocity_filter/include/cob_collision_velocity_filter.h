@@ -210,7 +210,7 @@ class CollisionVelocityFilter
     std::string global_frame_, robot_frame_;
 
     //velocity
-    geometry_msgs::Vector3 robot_twist_linear_, robot_twist_angular_;
+    geometry_msgs::Twist robot_twist_;
     double v_max_, vtheta_max_;
     double ax_max_, ay_max_, atheta_max_;  
 

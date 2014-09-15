@@ -164,9 +164,8 @@ CollisionVelocityFilter::~CollisionVelocityFilter(){}
 // joystick_velocityCB reads twist command from joystick
 void CollisionVelocityFilter::joystickVelocityCB(const geometry_msgs::Twist::ConstPtr &twist){
   pthread_mutex_lock(&m_mutex);
-
-  robot_twist_linear_ = twist->linear;
-  robot_twist_angular_ = twist->angular;
+  
+  robot_twist_ = *twist;
 
   pthread_mutex_unlock(&m_mutex);
 
@@ -265,12 +264,10 @@ void CollisionVelocityFilter::performControllerStep() {
   double dt;
   double vx_max, vy_max;
   geometry_msgs::Twist cmd_vel,cmd_vel_in;
-
-  cmd_vel_in.linear = robot_twist_linear_;
-  cmd_vel_in.angular = robot_twist_angular_;
-
-  cmd_vel.linear = robot_twist_linear_;
-  cmd_vel.angular = robot_twist_angular_;
+  
+  cmd_vel_in = robot_twist_;
+  cmd_vel = robot_twist_;
+  
   dt = ros::Time::now().toSec() - last_time_;
   last_time_ = ros::Time::now().toSec();
 
@@ -398,16 +395,16 @@ void CollisionVelocityFilter::obstacleHandler() {
   corner_front_right = atan2(footprint_right_, footprint_front_);
 
   //Decide, whether circumscribed or tube argument should be used for filtering:
-  if(fabs(robot_twist_linear_.x) <= 0.005f && fabs(robot_twist_linear_.y) <= 0.005f) {
+  if(fabs(robot_twist_.linear.x) <= 0.005f && fabs(robot_twist_.linear.y) <= 0.005f) {
     use_tube = false;
     //disable tube filter at very slow velocities
   }
   if(!use_tube) {
-    if( fabs(robot_twist_angular_.z) <= 0.01f) {
+    if( fabs(robot_twist_.angular.z) <= 0.01f) {
       use_circumscribed = false;
     } //when tube filter inactive, start circumscribed filter at very low rot-velocities
   } else {
-    if( fabs(robot_twist_angular_.z) <= use_circumscribed_threshold_) {
+    if( fabs(robot_twist_.angular.z) <= use_circumscribed_threshold_) {
       use_circumscribed = false;
     } //when tube filter running, disable circum-filter in a wider range of rot-velocities
   } 
@@ -427,7 +424,7 @@ void CollisionVelocityFilter::obstacleHandler() {
 
   if(use_tube) {
     //use commanded vel-value for vel-vector direction.. ?
-    velocity_angle = atan2(robot_twist_linear_.y, robot_twist_linear_.x);
+    velocity_angle = atan2(robot_twist_.linear.y, robot_twist_.linear.x);
     velocity_ortho_angle = velocity_angle + M_PI / 2.0f;
 
     for(unsigned i = 0; i<robot_footprint_.size(); i++) {
