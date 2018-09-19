@@ -604,8 +604,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cob_collision_velocity_filter");
 
   // create nodeClass
-  tf::TransformListener tf(ros::Duration(10));
-  costmap_2d::Costmap2DROS* costmap = new costmap_2d::Costmap2DROS("anti_collision_costmap", tf);
+  tf2_ros::Buffer buffer;
+  tf2_ros::TransformListener tf(buffer, true);
+  costmap_2d::Costmap2DROS* costmap = new costmap_2d::Costmap2DROS("anti_collision_costmap", buffer);
   CollisionVelocityFilter collisionVelocityFilter(costmap);
 
   ros::spin();
