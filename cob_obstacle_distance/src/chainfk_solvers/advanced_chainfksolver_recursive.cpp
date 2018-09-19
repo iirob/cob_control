@@ -28,7 +28,7 @@ AdvancedChainFkSolverPos_recursive::AdvancedChainFkSolverPos_recursive(const KDL
  * This special implementation ensures that the positions are stored in a vector so it is not necessary to call the method for each segment
  * again and again.
  */
-int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, KDL::Frame& p_out, int seg_nr)
+int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, std::vector<KDL::Frame>& p_out, int seg_nr)
 {
     unsigned int segmentNr;
     if (seg_nr < 0)
@@ -40,7 +40,7 @@ int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, KDL
         segmentNr = seg_nr;
     }
 
-    p_out = KDL::Frame::Identity();
+    out  = KDL::Frame::Identity();
 
     if (q_in.rows() != this->chain_.getNrOfJoints())
     {
@@ -58,18 +58,20 @@ int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, KDL
         {
             if (this->chain_.getSegment(i).getJoint().getType() != KDL::Joint::None)
             {
-                p_out = p_out * this->chain_.getSegment(i).pose(q_in(j));
+                out = out * this->chain_.getSegment(i).pose(q_in(j));
                 j++;
             }
             else
             {
-                p_out = p_out * this->chain_.getSegment(i).pose(0.0);
+                out = out * this->chain_.getSegment(i).pose(0.0);
             }
 
-            this->segment_pos_.push_back(KDL::Frame(p_out));  // store copies not references
+            this->segment_pos_.push_back(KDL::Frame(out));  // store copies not references
         }
+        p_out.push_back(out);
         return 0;
     }
+    p_out.push_back(out);
 }
 
 /**
