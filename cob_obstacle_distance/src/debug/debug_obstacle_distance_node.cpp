@@ -17,6 +17,7 @@
 
 #include <string>
 #include <map>
+#include <boost/format.hpp>
 #include <ros/ros.h>
 #include <visualization_msgs/MarkerArray.h>
 #include "cob_control_msgs/ObstacleDistance.h"
