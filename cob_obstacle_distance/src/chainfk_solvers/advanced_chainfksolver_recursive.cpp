@@ -40,6 +40,7 @@ int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, std
         segmentNr = seg_nr;
     }
 
+    KDL::Frame out;
     out  = KDL::Frame::Identity();
 
     if (q_in.rows() != this->chain_.getNrOfJoints())
