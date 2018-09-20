@@ -188,7 +188,7 @@ int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, 
     KDL::FrameVel v_out;
 
     int ret = JntToCart(q_in, v_out, seg_nr);
-   out.push_back(v_out);
+    out.push_back(v_out);
 
     return ret;
 }

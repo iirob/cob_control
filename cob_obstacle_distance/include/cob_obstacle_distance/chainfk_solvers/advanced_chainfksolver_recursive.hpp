@@ -53,6 +53,8 @@ class AdvancedChainFkSolverPos_recursive : public KDL::ChainFkSolverPos
          */
         KDL::Frame getFrameAtSegment(uint16_t seg_idx) const;
 
+        virtual void updateInternalDataStructures()=0;
+
         void dumpAllSegmentPostures() const;
 
     private:
@@ -89,6 +91,8 @@ class AdvancedChainFkSolverVel_recursive : public KDL::ChainFkSolverVel
          * @return The reference frame of the segment.
          */
         KDL::FrameVel getFrameVelAtSegment(uint16_t seg_idx) const;
+
+        virtual void updateInternalDataStructures()=0;
 
 
     private:
