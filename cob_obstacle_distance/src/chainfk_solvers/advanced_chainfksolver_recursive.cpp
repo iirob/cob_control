@@ -28,7 +28,7 @@ AdvancedChainFkSolverPos_recursive::AdvancedChainFkSolverPos_recursive(const KDL
  * This special implementation ensures that the positions are stored in a vector so it is not necessary to call the method for each segment
  * again and again.
  */
-int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, std::vector<KDL::Frame>& p_out, int seg_nr)
+int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, KDL::Frame& p_out, int seg_nr)
 {
     unsigned int segmentNr;
     if (seg_nr < 0)
@@ -40,8 +40,7 @@ int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, std
         segmentNr = seg_nr;
     }
 
-    KDL::Frame out;
-    out  = KDL::Frame::Identity();
+    p_out = KDL::Frame::Identity();
 
     if (q_in.rows() != this->chain_.getNrOfJoints())
     {
@@ -59,20 +58,28 @@ int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, std
         {
             if (this->chain_.getSegment(i).getJoint().getType() != KDL::Joint::None)
             {
-                out = out * this->chain_.getSegment(i).pose(q_in(j));
+                p_out = p_out * this->chain_.getSegment(i).pose(q_in(j));
                 j++;
             }
             else
             {
-                out = out * this->chain_.getSegment(i).pose(0.0);
+                p_out = p_out * this->chain_.getSegment(i).pose(0.0);
             }
 
-            this->segment_pos_.push_back(KDL::Frame(out));  // store copies not references
+            this->segment_pos_.push_back(KDL::Frame(p_out));  // store copies not references
         }
-        p_out.push_back(out);
         return 0;
     }
+}
+
+int AdvancedChainFkSolverPos_recursive::JntToCart(const KDL::JntArray& q_in, std::vector<KDL::Frame>& p_out, int seg_nr)
+{
+    KDL::Frame out;
+
+    int ret = JntToCart(q_in, out, seg_nr);
     p_out.push_back(out);
+
+    return ret;
 }
 
 /**
@@ -127,7 +134,7 @@ AdvancedChainFkSolverVel_recursive::AdvancedChainFkSolverVel_recursive(const KDL
  * This special implementation ensures that the velocities are stored in a vector so it is not necessary to call the method for each segment
  * again and again.
  */
-int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, std::vector<KDL::FrameVel>& out, int seg_nr)
+int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, KDL::FrameVel& out, int seg_nr)
 {
     unsigned int segmentNr;
     if (seg_nr < 0)
@@ -139,8 +146,7 @@ int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, 
         segmentNr = seg_nr;
     }
 
-     KDL::FrameVel v_out;
-    v_out = KDL::FrameVel::Identity();
+    out = KDL::FrameVel::Identity();
 
     if (!(q_in.q.rows() == this->chain_.getNrOfJoints() && q_in.qdot.rows() == this->chain_.getNrOfJoints()))
     {
@@ -160,22 +166,31 @@ int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, 
             // Calculate new Frame_base_ee
             if (this->chain_.getSegment(i).getJoint().getType() != KDL::Joint::None)
             {
-                v_out = v_out * KDL::FrameVel(this->chain_.getSegment(i).pose(q_in.q(j)),
+                out = out * KDL::FrameVel(this->chain_.getSegment(i).pose(q_in.q(j)),
                                           this->chain_.getSegment(i).twist(q_in.q(j), q_in.qdot(j)));
                 j++;  // Only increase jointnr if the segment has a joint
             }
             else
             {
-                v_out = v_out * KDL::FrameVel(this->chain_.getSegment(i).pose(0.0),
+                out = out * KDL::FrameVel(this->chain_.getSegment(i).pose(0.0),
                                  this->chain_.getSegment(i).twist(0.0, 0.0));
             }
 
-            this->segment_vel_.push_back(KDL::FrameVel(v_out));
+            this->segment_vel_.push_back(KDL::FrameVel(out));
         }
-        out.push_back(v_out);
+
         return 0;
     }
-    out.push_back(v_out);
+}
+
+int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, std::vector<KDL::FrameVel>& out, int seg_nr)
+{
+    KDL::FrameVel v_out;
+
+    int ret = JntToCart(q_in, v_out, seg_nr);
+   out.push_back(v_out);
+
+    return ret;
 }
 
 
