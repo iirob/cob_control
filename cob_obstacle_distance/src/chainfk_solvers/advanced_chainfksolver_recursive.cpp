@@ -139,6 +139,7 @@ int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, 
         segmentNr = seg_nr;
     }
 
+     KDL::FrameVel v_out;
     v_out = KDL::FrameVel::Identity();
 
     if (!(q_in.q.rows() == this->chain_.getNrOfJoints() && q_in.qdot.rows() == this->chain_.getNrOfJoints()))
