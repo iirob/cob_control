@@ -127,7 +127,7 @@ AdvancedChainFkSolverVel_recursive::AdvancedChainFkSolverVel_recursive(const KDL
  * This special implementation ensures that the velocities are stored in a vector so it is not necessary to call the method for each segment
  * again and again.
  */
-int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, KDL::FrameVel& out, int seg_nr)
+int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, std::vector<KDL::FrameVel>& out, int seg_nr)
 {
     unsigned int segmentNr;
     if (seg_nr < 0)
@@ -139,7 +139,7 @@ int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, 
         segmentNr = seg_nr;
     }
 
-    out = KDL::FrameVel::Identity();
+    v_out = KDL::FrameVel::Identity();
 
     if (!(q_in.q.rows() == this->chain_.getNrOfJoints() && q_in.qdot.rows() == this->chain_.getNrOfJoints()))
     {
@@ -159,21 +159,22 @@ int AdvancedChainFkSolverVel_recursive::JntToCart(const KDL::JntArrayVel& q_in, 
             // Calculate new Frame_base_ee
             if (this->chain_.getSegment(i).getJoint().getType() != KDL::Joint::None)
             {
-                out = out * KDL::FrameVel(this->chain_.getSegment(i).pose(q_in.q(j)),
+                v_out = v_out * KDL::FrameVel(this->chain_.getSegment(i).pose(q_in.q(j)),
                                           this->chain_.getSegment(i).twist(q_in.q(j), q_in.qdot(j)));
                 j++;  // Only increase jointnr if the segment has a joint
             }
             else
             {
-                out = out * KDL::FrameVel(this->chain_.getSegment(i).pose(0.0),
+                v_out = v_out * KDL::FrameVel(this->chain_.getSegment(i).pose(0.0),
                                  this->chain_.getSegment(i).twist(0.0, 0.0));
             }
 
-            this->segment_vel_.push_back(KDL::FrameVel(out));
+            this->segment_vel_.push_back(KDL::FrameVel(v_out));
         }
-
+        out.push_back(v_out);
         return 0;
     }
+    out.push_back(v_out);
 }
 
 
