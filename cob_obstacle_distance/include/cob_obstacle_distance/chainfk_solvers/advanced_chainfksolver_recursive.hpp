@@ -80,7 +80,7 @@ class AdvancedChainFkSolverVel_recursive : public KDL::ChainFkSolverVel
          * @param seg_nr The max. segment nr until calculation should stop.
          * @return An error code (0 == success)
          */
-        virtual int JntToCart(const KDL::JntArrayVel& q_in, KDL::FrameVel& out, int seg_nr = -1);
+        virtual int JntToCart(const KDL::JntArrayVel& q_in, std::vector<KDL::FrameVel>& out, int seg_nr = -1);
 
         /**
          * @param seg_idx Index of the segment starting with 0.
