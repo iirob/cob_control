@@ -92,9 +92,6 @@ class AdvancedChainFkSolverVel_recursive : public KDL::ChainFkSolverVel
          */
         KDL::FrameVel getFrameVelAtSegment(uint16_t seg_idx) const;
 
-        virtual void updateInternalDataStructures()=0;
-
-
     private:
         const KDL::Chain& chain_;
         FrameVelVector_t segment_vel_;
