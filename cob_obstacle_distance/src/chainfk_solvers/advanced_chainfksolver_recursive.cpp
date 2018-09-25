@@ -97,7 +97,7 @@ KDL::Frame AdvancedChainFkSolverPos_recursive::getFrameAtSegment(uint16_t seg_id
     return p_out;
 }
 
-void updateInternalDataStructures()
+void AdvancedChainFkSolverPos_recursive::updateInternalDataStructures()
 {
 }
 
@@ -210,7 +210,7 @@ KDL::FrameVel AdvancedChainFkSolverVel_recursive::getFrameVelAtSegment(uint16_t 
     return vel_out;
 }
 
-void updateInternalDataStructures()
+void AdvancedChainFkSolverVel_recursive::updateInternalDataStructures()
 {
 }
 
