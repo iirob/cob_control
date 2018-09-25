@@ -97,6 +97,10 @@ KDL::Frame AdvancedChainFkSolverPos_recursive::getFrameAtSegment(uint16_t seg_id
     return p_out;
 }
 
+void updateInternalDataStructures()
+{
+}
+
 /**
  * Output of all previously set segment positions.
  */
@@ -204,6 +208,10 @@ KDL::FrameVel AdvancedChainFkSolverVel_recursive::getFrameVelAtSegment(uint16_t 
     }
 
     return vel_out;
+}
+
+void updateInternalDataStructures()
+{
 }
 
 
