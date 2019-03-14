@@ -29,7 +29,7 @@ colors = ('b', 'r', 'y', 'g', 'm', 'c', 'k', )
 
 def getMeasData(filename):
     newData = []
-    with open(filename) as fp:
+    with open(filename, encoding='utf-8') as fp:
         for line in fp.readlines():
             line = line.strip()
             if line.startswith('[') and line.endswith(']'):

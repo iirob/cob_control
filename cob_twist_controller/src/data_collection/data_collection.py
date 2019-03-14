@@ -51,7 +51,7 @@ class DataKraken(object):
     def open(self):
         success = False
         try:
-            with open(self.file_path_, 'wt') as csvfile:
+            with open(self.file_path_, 'wt', encoding='utf-8') as csvfile:
                 self.csv_writer_ = csv.writer(
                     csvfile, delimiter = DEL, quotechar = QUOTE)
                 success = self.csv_writer_ is not None
@@ -65,7 +65,7 @@ class DataKraken(object):
     def writeAllData(self):
         success = False
         if len(self.data_rows_) > 0:
-            with open(self.file_path_, 'wt') as csvfile:
+            with open(self.file_path_, 'wt', encoding='utf-8') as csvfile:
                 self.csv_writer_ = csv.writer(
                     csvfile, delimiter = DEL, quotechar = QUOTE)
                 self.csv_writer_.writerows(self.data_rows_)
@@ -258,7 +258,7 @@ class FrameTrackingDataKraken(DataKraken):
     def open(self):
         success = False
         try:
-            with open(self.file_path_, 'wt') as csvfile:
+            with open(self.file_path_, 'wt', encoding='utf-8') as csvfile:
                 self.csv_writer_ = csv.writer(
                     csvfile, delimiter = DEL, quotechar = QUOTE)
                 success = self.csv_writer_ is not None
