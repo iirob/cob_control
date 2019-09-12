@@ -47,7 +47,8 @@ double getWeightedDelta(double current_position, double old_target, double new_t
     // 2nd which set point is closest to last set point
     // "fitness criteria" to choose optimal set point:
     // calculate accumulted (+ weighted) difference between targets, current config. and last command
-    return 0.6*fabs(dtempDeltaPhi1RAD) + 0.4*fabs(dtempDeltaPhiCmd1RAD);
+    double current_weight = 1;
+    return current_weight*fabs(dtempDeltaPhi1RAD) + (1-current_weight)*fabs(dtempDeltaPhiCmd1RAD);
 }
 
 void WheelData::updateState(const WheelState &state){
