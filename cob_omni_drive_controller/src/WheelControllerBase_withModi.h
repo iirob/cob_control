@@ -155,9 +155,9 @@ protected:
                     if (1.15 < m && m < 1.25) this->mode = 2;
                 }
                 switch (this->mode) {
-                    case 0: this->helper_swerve(msg); break;
-                    case 1: this->helper_ackermann(msg, 0.4); break;
-                    case 2: this->helper_ackermann(msg, 0.0); break; // diff. = no-limits-ackermann
+                    case 0: this->helper_swerve(msg); ROS_INFO("omni"); break;
+                    case 1: this->helper_ackermann(msg, 0.4); ROS_INFO("ackermann"); break;
+                    case 2: this->helper_ackermann(msg, 0.0); ROS_INFO("differential"); break; // diff. = no-limits-ackermann
                 }
             }
             target_.updated = true;
@@ -174,10 +174,16 @@ protected:
     void helper_ackermann(const geometry_msgs::Twist::ConstPtr& msg, double r_min) {
         // r_min is the minimum turning radius (measured from middle).
 
+        /* This was for the care-o-bot in the simulation.
         // caster_offset_x and _y from base.urdf.xacro
         // (wheel positions w.r.t. platform)
         double x = 0.24844;
         double y = 0.21515;
+        */
+
+        // Real-world walker with four wheels
+        const double x = 0.228;
+        const double y = 0.184;
         
         double v_lon = msg->linear.x;
         double v_lat = msg->linear.y;
@@ -190,7 +196,8 @@ protected:
             allowed = true;
         } else {
             allowed = std::abs(v_lon / v_rot) >= r_min;
-            v_lat = - v_rot * x / 2.0;
+            // v_lat = - v_rot * x / 2.0; // for cob sim
+            v_lat = - v_rot * x;
         }
     
         if (allowed) {
