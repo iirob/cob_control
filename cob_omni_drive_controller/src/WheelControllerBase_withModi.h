@@ -35,6 +35,8 @@
 
 #include <cmath>
 
+#include "drive_target_velocity.h"
+
 namespace cob_omni_drive_controller
 {
 
@@ -127,10 +129,6 @@ protected:
         ros::Time stamp;
     } target_;
 
-    double virtual_center_x = 1.228;	
-    double virtual_center_y = 0.184;	
-
-    int mode = 0; // 0 swerve, 1 ackermann, 2 differential
     std::vector<WheelCommand> wheel_commands_;
 
     boost::mutex mutex_;
@@ -143,6 +141,8 @@ protected:
     ros::Duration timeout_;
     double max_vel_trans_, max_vel_rot_;
 
+    DriveModeFilter dmf;
+
     void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg){
         if(this->isRunning()){
             boost::mutex::scoped_lock lock(mutex_);
@@ -153,7 +153,7 @@ protected:
                 // ugly solution to drive mode setting
                 double m = msg->linear.z;
                 if (m > 0.5) {
-                    if (0.95 < m && m < 1.05) this->mode = 0;
+                    if (0.95 < m && m < 1.05) this->dmf = DriveModeFilter::Mode
                     if (1.05 < m && m < 1.15) this->mode = 1;
                     if (1.15 < m && m < 1.25) this->mode = 2;
                     if (1.25 < m && m < 1.35) {
@@ -172,55 +172,6 @@ protected:
             target_.stamp = ros::Time::now();
         }
     }
-
-    void helper_swerve(const geometry_msgs::Twist::ConstPtr& msg) {
-        target_.state.setVelX(limitValue(msg->linear.x, max_vel_trans_));
-        target_.state.setVelY(limitValue(msg->linear.y, max_vel_trans_));
-        target_.state.dRotRobRadS = limitValue(msg->angular.z, max_vel_rot_);
-    }
-
-    void helper_ackermann(const geometry_msgs::Twist::ConstPtr& msg, double r_min) {
-        // r_min is the minimum turning radius (measured from middle).
-
-        /* This was for the care-o-bot in the simulation.
-        // caster_offset_x and _y from base.urdf.xacro
-        // (wheel positions w.r.t. platform)
-        double x = 0.24844;
-        double y = 0.21515;
-        */
-
-        // Real-world walker with four wheels
-        //const double x = 0.228;
-        //const double y = 0.184;
-	const double x = this->virtual_center_x;
-	const double y = this->virtual_center_y;
-        
-        double v_lon = msg->linear.x;
-        double v_lat = msg->linear.y;
-        double v_rot = msg->angular.z;
-    
-        double allowed; // whether the movement is "ackermannable"
-    
-        if (v_rot == 0.0) { // floating point should not be compared like this, but I only want to avoid division by zero
-            v_lat = 0.0;
-            allowed = true;
-        } else {
-            allowed = std::abs(v_lon / v_rot) >= r_min;
-            // v_lat = - v_rot * x / 2.0; // for cob sim
-            v_lat = - v_rot * x;
-        }
-    
-        if (allowed) {
-            target_.state.setVelX(limitValue(v_lon, max_vel_trans_));
-            target_.state.setVelY(limitValue(v_lat, max_vel_trans_));
-            target_.state.dRotRobRadS = limitValue(v_rot, max_vel_rot_);
-        } else {
-            target_.state.setVelX(limitValue(0, max_vel_trans_));
-            target_.state.setVelY(limitValue(0, max_vel_trans_));
-            target_.state.dRotRobRadS = limitValue(0, max_vel_rot_);
-        }
-    }
-
 };
 
 }
