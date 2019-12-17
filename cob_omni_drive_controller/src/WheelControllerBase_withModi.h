@@ -127,6 +127,9 @@ protected:
         ros::Time stamp;
     } target_;
 
+    double virtual_center_x = 1.228;	
+    double virtual_center_y = 0.184;	
+
     int mode = 0; // 0 swerve, 1 ackermann, 2 differential
     std::vector<WheelCommand> wheel_commands_;
 
@@ -148,11 +151,16 @@ protected:
                 target_.state = PlatformState();
             }else{
                 // ugly solution to drive mode setting
-                double m = msg->angular.x;
+                double m = msg->linear.z;
                 if (m > 0.5) {
                     if (0.95 < m && m < 1.05) this->mode = 0;
                     if (1.05 < m && m < 1.15) this->mode = 1;
                     if (1.15 < m && m < 1.25) this->mode = 2;
+                    if (1.25 < m && m < 1.35) {
+                        this->virtual_center_x = msg->angular.x;
+                        this->virtual_center_y = msg->angular.y;
+			ROS_INFO("%f %f\n", this->virtual_center_x, this->virtual_center_y);
+                    }
                 }
                 switch (this->mode) {
                     case 0: this->helper_swerve(msg); ROS_INFO("omni"); break;
@@ -182,8 +190,10 @@ protected:
         */
 
         // Real-world walker with four wheels
-        const double x = 0.228;
-        const double y = 0.184;
+        //const double x = 0.228;
+        //const double y = 0.184;
+	const double x = this->virtual_center_x;
+	const double y = this->virtual_center_y;
         
         double v_lon = msg->linear.x;
         double v_lat = msg->linear.y;
