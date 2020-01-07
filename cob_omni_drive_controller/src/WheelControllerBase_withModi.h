@@ -34,9 +34,9 @@
 
 #include <cmath>
 
-#include "drive_mode_filter.h"
+#include "UndercarriageDriveMode.h"
 
-#include "cob_omni_drive_controller/dmf_cmd.h"
+#include "cob_omni_drive_controller/ucdm_cmd.h"
 
 namespace cob_omni_drive_controller
 {
@@ -67,8 +67,8 @@ public:
 
         wheel_commands_.resize(this->wheel_states_.size());
         twist_subscriber_ = controller_nh.subscribe("command", 1, &WheelControllerBase::topicCallbackTwistCmd, this);
-
-        drive_mode_subscriber = controller_nh.subscribe("change_drive_mode", 1, &WheelControllerBase::dmfCallback, this);
+        // Why the ampersand? ROS tutorial doesn't have ampersand when subscribing the callback?
+        // http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28c%2B%2B%29
 
         commands_pub_.reset(new realtime_tools::RealtimePublisher<cob_base_controller_utils::WheelCommands>(controller_nh, "wheel_commands", 5));
        
@@ -76,6 +76,9 @@ public:
         commands_pub_->msg_.steer_target_velocity.resize(this->wheel_states_.size());
         commands_pub_->msg_.steer_target_position.resize(this->wheel_states_.size());
         commands_pub_->msg_.steer_target_error.resize(this->wheel_states_.size());
+
+        // Which one is needed?
+        this->ucdm = new UndercarriageDriveMode(root_nh, controller_nh);
 
         return true;
   }
@@ -136,8 +139,6 @@ protected:
 
     boost::mutex mutex_;
     ros::Subscriber twist_subscriber_;
-
-    ros::Subscriber drive_mode_subscriber;
     
     boost::scoped_ptr<realtime_tools::RealtimePublisher<cob_base_controller_utils::WheelCommands> > commands_pub_;
     uint32_t cycles_;
@@ -146,13 +147,7 @@ protected:
     ros::Duration timeout_;
     double max_vel_trans_, max_vel_rot_;
 
-    DriveModeFilter dmf;
-
-    void dmfCallback(const cob_omni_drive_controller::dmf_cmd& param){
-		// TODO if this is running etc.?
-		this->dmf.callback(0.0);
-		// configure instead
-	}
+    UndercarriageDriveMode* ucdm;
 
     void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg){
         if(this->isRunning()){
@@ -161,9 +156,8 @@ protected:
                 ROS_FATAL("Received NaN-value in Twist message. Reset target to zero.");
                 target_.state = PlatformState();
             } else{
-				double vx, vy, vr;
-				dmf.filter(msg->linear.x, msg->linear.y, msg->angular.z, vx, vy, vr);
-				// UndercarriageDriveMode.apply instead
+                double vx, vy, vr;
+                ucdm->apply(msg->linear.x, msg->linear.y, msg->angular.z, vx, vy, vr);
 
                 target_.state.setVelX(limitValue(vx, max_vel_trans_));
                 target_.state.setVelY(limitValue(vy, max_vel_trans_));

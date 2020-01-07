@@ -1,19 +1,21 @@
-#include "drive_mode_filter.h"
+#include "UndercarriageDriveMode.h"
 
 #include<stdlib.h>
 
-DriveModeFilter::DriveModeFilter() {
+UndercarriageDriveMode::UndercarriageDriveMode(ros::NodeHandle &root_nh, ros::NodeHandle& controller_nh) {
     this->virtual_center_x = 0.;
     this->virtual_center_y = 0.;    
+
+	cmd_subscriber = controller_nh.subscribe("undercarriage_drive_mode", 1, &UndercarriageDriveMode::config, this);
 }
 
-void DriveModeFilter::setMode(Mode new_mode) {
+void UndercarriageDriveMode::setMode(Mode new_mode) {
 	this->mode = new_mode;
 
-// get the nh here and subscribe!
+    // So config is supposed to call this method. Why not directly in config?
 }
 
-void DriveModeFilter::setCenter(double x, double y) {
+void UndercarriageDriveMode::setCenter(double x, double y) {
 	// Security measure.
 	// Problem is, if you were to set the center of rotation far away, the
 	// slightest rotation would produce huge movements.
@@ -29,10 +31,10 @@ void DriveModeFilter::setCenter(double x, double y) {
 	this->virtual_center_y = y;    
 }
 
-void DriveModeFilter::set_min_turning_radius(double r_min) {
+void UndercarriageDriveMode::set_min_turning_radius(double r_min) {
 }
 
-void DriveModeFilter::filter (double v_x_in, double v_y_in, double r_z_in, 
+void UndercarriageDriveMode::apply(double v_x_in, double v_y_in, double r_z_in, 
 			 double& v_x_out, double& v_y_out, double& r_z_out) {
 	if (this->mode == OMNIDIRECTIONAL) {
 		v_x_out = v_x_in;
@@ -81,5 +83,5 @@ void DriveModeFilter::filter (double v_x_in, double v_y_in, double r_z_in,
 	}	
 }
 
-void DriveModeFilter::callback(double param) {
+void UndercarriageDriveMode::config(const cob_omni_drive_controller::ucdm_cmd& param) {
 }
