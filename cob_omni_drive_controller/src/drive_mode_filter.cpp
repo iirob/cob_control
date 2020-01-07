@@ -2,6 +2,11 @@
 
 #include<stdlib.h>
 
+DriveModeFilter::DriveModeFilter() {
+    this->virtual_center_x = 0.;
+    this->virtual_center_y = 0.;    
+}
+
 void DriveModeFilter::setMode(Mode new_mode) {
 	this->mode = new_mode;
 }
@@ -72,4 +77,7 @@ void DriveModeFilter::filter (double v_x_in, double v_y_in, double r_z_in,
 		v_y_out = -v_rot * x;
 		r_z_out = v_rot;
 	}	
+}
+
+void DriveModeFilter::callback(double param) {
 }

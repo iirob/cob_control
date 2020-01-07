@@ -1,6 +1,7 @@
 class DriveModeFilter {
 
 public:
+    DriveModeFilter();
 	// TODO doc
     enum Mode { OMNIDIRECTIONAL, ACKERMANN, DIFFERENTIAL };
     void setMode(Mode new_mode);
@@ -8,6 +9,7 @@ public:
 	void set_min_turning_radius(double r_min);
 	void filter (double v_x_in, double v_y_in, double r_z_in, 
 	             double& v_x_out, double& v_y_out, double& r_z_out);
+	void callback(double param);
 
 private:
     // Current drive mode.
