@@ -2,7 +2,7 @@ class DriveModeFilter {
 
 public:
 	// TODO doc
-    enum Mode = { OMNIDIRECTIONAL, ACKERMANN, DIFFERENTIAL };
+    enum Mode { OMNIDIRECTIONAL, ACKERMANN, DIFFERENTIAL };
     void setMode(Mode new_mode);
 	void setCenter(double x, double y);
 	void set_min_turning_radius(double r_min);
@@ -14,8 +14,8 @@ private:
     Mode mode;
 
     // Coordinates of center of rotation in meters.
-    double virtual_center_x = 0.;
-    double virtual_center_y = 0.;    
+    double virtual_center_x;
+    double virtual_center_y;    
 
 	// Minimum turning radius. Only relevant in Ackermann mode.
 	double r_min;

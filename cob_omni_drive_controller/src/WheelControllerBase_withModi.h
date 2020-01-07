@@ -1,5 +1,4 @@
-/*
- * Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
+/* * Copyright 2017 Fraunhofer Institute for Manufacturing Engineering and Automation (IPA)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +34,7 @@
 
 #include <cmath>
 
-#include "drive_target_velocity.h"
+#include "drive_mode_filter.h"
 
 namespace cob_omni_drive_controller
 {
@@ -149,29 +148,20 @@ protected:
             if(isnan(msg->linear.x) || isnan(msg->linear.y) || isnan(msg->angular.z)) {
                 ROS_FATAL("Received NaN-value in Twist message. Reset target to zero.");
                 target_.state = PlatformState();
-            }else{
-                // ugly solution to drive mode setting
-                double m = msg->linear.z;
-                if (m > 0.5) {
-                    if (0.95 < m && m < 1.05) this->dmf = DriveModeFilter::Mode
-                    if (1.05 < m && m < 1.15) this->mode = 1;
-                    if (1.15 < m && m < 1.25) this->mode = 2;
-                    if (1.25 < m && m < 1.35) {
-                        this->virtual_center_x = msg->angular.x;
-                        this->virtual_center_y = msg->angular.y;
-			ROS_INFO("%f %f\n", this->virtual_center_x, this->virtual_center_y);
-                    }
-                }
-                switch (this->mode) {
-                    case 0: this->helper_swerve(msg); ROS_INFO("omni"); break;
-                    case 1: this->helper_ackermann(msg, 0.4); ROS_INFO("ackermann"); break;
-                    case 2: this->helper_ackermann(msg, 0.0); ROS_INFO("differential"); break; // diff. = no-limits-ackermann
-                }
+            } else{
+				double vx, vy, vr;
+				dmf.filter(msg->linear.x, msg->linear.y, msg->angular.z, vx, vy, vr);
+                target_.state.setVelX(limitValue(vx, max_vel_trans_));
+                target_.state.setVelY(limitValue(vy, max_vel_trans_));
+                target_.state.dRotRobRadS = limitValue(vr, max_vel_rot_);
             }
             target_.updated = true;
             target_.stamp = ros::Time::now();
         }
     }
+
+    void helper_swerve(const geometry_msgs::Twist::ConstPtr& msg){};
+    void helper_ackermann(const geometry_msgs::Twist::ConstPtr& msg, double param){};
 };
 
 }

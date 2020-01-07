@@ -1,5 +1,6 @@
 #include "drive_mode_filter.h"
 
+#include<stdlib.h>
 
 void DriveModeFilter::setMode(Mode new_mode) {
 	this->mode = new_mode;
@@ -31,7 +32,7 @@ void DriveModeFilter::filter (double v_x_in, double v_y_in, double r_z_in,
 		v_y_out = v_y_in;
 		r_z_out = r_z_in;
 	}
-	else if ((this->mode == ACKERMANN or this->mode == DIFFERENTIAL) and v_rot == 0.0) {
+	else if ((this->mode == ACKERMANN or this->mode == DIFFERENTIAL) and r_z_in == 0.0) {
 		// Not much to do if there is no rotation component.
 		// Getting rid of the lateral component is enough.
 		// Let's handle this case now so that I don't have to worry about
@@ -48,9 +49,9 @@ void DriveModeFilter::filter (double v_x_in, double v_y_in, double r_z_in,
 		const double y = this->virtual_center_y;
 		
 		// TODO. v_lon will not have to be parallel to v_x.
-		double v_lon = msg->linear.x;
+		double v_lon = v_x_in;
 		double v_lat = 0.0;
-		double v_rot = msg->angular.z;
+		double v_rot = r_z_in;
 		// TODO
 		// Now here's a fundamental problem. Say the center of Ackermann
 		// is 3 meters behind the robot. The intuitive thing to do in
@@ -59,12 +60,12 @@ void DriveModeFilter::filter (double v_x_in, double v_y_in, double r_z_in,
 		// center is.
 		// For now, I ignore v_lat.
 	
-		if (std::abs(v_lon / v_rot) < this->r_min) {
+		if (abs(v_lon / v_rot) < this->r_min) {
 			// Trying to turn with a radius smaller than the minimum.
 			// We need to clip v_rot
 
-			double max_s_rot = std::abs(v_lon / this->r_min);
-			v_rot = max_s_rot * v_rot / std::abs(v_rot);
+			double max_s_rot = abs(v_lon / this->r_min);
+			v_rot = max_s_rot * v_rot / abs(v_rot);
 		}
 	
 		v_x_out = v_lon;
