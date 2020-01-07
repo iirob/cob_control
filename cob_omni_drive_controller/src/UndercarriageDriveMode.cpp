@@ -6,7 +6,7 @@ UndercarriageDriveMode::UndercarriageDriveMode(ros::NodeHandle &root_nh, ros::No
     this->virtual_center_x = 0.;
     this->virtual_center_y = 0.;    
 
-	cmd_subscriber = controller_nh.subscribe("undercarriage_drive_mode", 1, &UndercarriageDriveMode::config, this);
+	this->srv = root_nh.advertiseService("ucdm_conf", &UndercarriageDriveMode::config, this);
 }
 
 void UndercarriageDriveMode::setMode(Mode new_mode) {
@@ -83,5 +83,12 @@ void UndercarriageDriveMode::apply(double v_x_in, double v_y_in, double r_z_in,
 	}	
 }
 
-void UndercarriageDriveMode::config(const cob_omni_drive_controller::ucdm_cmd& param) {
+bool UndercarriageDriveMode::config(cob_omni_drive_controller::ucdm_cmd::Request& req,
+									cob_omni_drive_controller::ucdm_cmd::Response& res) {
+	// just an echo server for now
+	res.mode = req.mode;
+	res.virtual_center_x = req.virtual_center_x;
+	res.virtual_center_y = req.virtual_center_y;
+	res.direction = req.direction;
+	return true;
 }

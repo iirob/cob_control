@@ -9,7 +9,7 @@ generate_dynamic_reconfigure_options(
   cfg/SteerCtrl.cfg
 )
 
-add_message_files(FILES ucdm_cmd.msg)
+add_service_files(FILES ucdm_cmd.srv)
 generate_messages()
 
 catkin_package(
