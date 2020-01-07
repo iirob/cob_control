@@ -9,6 +9,8 @@ DriveModeFilter::DriveModeFilter() {
 
 void DriveModeFilter::setMode(Mode new_mode) {
 	this->mode = new_mode;
+
+// get the nh here and subscribe!
 }
 
 void DriveModeFilter::setCenter(double x, double y) {

@@ -36,6 +36,8 @@
 
 #include "drive_mode_filter.h"
 
+#include "cob_omni_drive_controller/dmf_cmd.h"
+
 namespace cob_omni_drive_controller
 {
 
@@ -146,9 +148,10 @@ protected:
 
     DriveModeFilter dmf;
 
-    void dmfCallback(const cob_omni_drive_controller::dmf_cmd param){
+    void dmfCallback(const cob_omni_drive_controller::dmf_cmd& param){
 		// TODO if this is running etc.?
-		this->dmf.callback(param);
+		this->dmf.callback(0.0);
+		// configure instead
 	}
 
     void topicCallbackTwistCmd(const geometry_msgs::Twist::ConstPtr& msg){
@@ -160,6 +163,8 @@ protected:
             } else{
 				double vx, vy, vr;
 				dmf.filter(msg->linear.x, msg->linear.y, msg->angular.z, vx, vy, vr);
+				// UndercarriageDriveMode.apply instead
+
                 target_.state.setVelX(limitValue(vx, max_vel_trans_));
                 target_.state.setVelY(limitValue(vy, max_vel_trans_));
                 target_.state.dRotRobRadS = limitValue(vr, max_vel_rot_);

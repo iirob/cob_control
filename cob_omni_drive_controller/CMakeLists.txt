@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cob_omni_drive_controller)
 
-find_package(catkin REQUIRED COMPONENTS angles cob_base_controller_utils controller_interface dynamic_reconfigure geometry_msgs hardware_interface nav_msgs realtime_tools sensor_msgs std_msgs std_srvs tf tf2 urdf)
+find_package(catkin REQUIRED COMPONENTS angles cob_base_controller_utils controller_interface dynamic_reconfigure geometry_msgs hardware_interface nav_msgs realtime_tools sensor_msgs std_msgs std_srvs tf tf2 urdf message_generation)
 
 find_package(Boost REQUIRED COMPONENTS thread)
 
@@ -9,8 +9,11 @@ generate_dynamic_reconfigure_options(
   cfg/SteerCtrl.cfg
 )
 
+add_message_files(FILES dmf_cmd.msg)
+generate_messages()
+
 catkin_package(
-  CATKIN_DEPENDS angles cob_base_controller_utils controller_interface dynamic_reconfigure geometry_msgs hardware_interface nav_msgs sensor_msgs std_msgs std_srvs tf tf2 urdf
+  CATKIN_DEPENDS angles cob_base_controller_utils controller_interface dynamic_reconfigure geometry_msgs hardware_interface nav_msgs sensor_msgs std_msgs std_srvs tf tf2 urdf message_runtime
   DEPENDS Boost
   INCLUDE_DIRS include
   LIBRARIES cob_omni_drive_geom cob_omni_drive_controller
