@@ -156,8 +156,10 @@ protected:
                 ROS_FATAL("Received NaN-value in Twist message. Reset target to zero.");
                 target_.state = PlatformState();
             } else{
-                double vx, vy, vr;
+                double vx = 0.0042, vy = 0.0042, vr = 0.0042;
+				ROS_INFO("BEFORE: %lf, %lf, %lf", vx, vy, vr);
                 ucdm->apply(msg->linear.x, msg->linear.y, msg->angular.z, vx, vy, vr);
+				ROS_INFO("AFTER: %lf, %lf, %lf", vx, vy, vr);
 
                 target_.state.setVelX(limitValue(vx, max_vel_trans_));
                 target_.state.setVelY(limitValue(vy, max_vel_trans_));

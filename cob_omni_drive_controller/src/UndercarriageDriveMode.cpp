@@ -3,6 +3,8 @@
 #include<stdlib.h>
 
 UndercarriageDriveMode::UndercarriageDriveMode(ros::NodeHandle &root_nh, ros::NodeHandle& controller_nh) {
+	this->mode = DIFFERENTIAL;
+
     this->virtual_center_x = 0.;
     this->virtual_center_y = 0.;    
 
@@ -29,14 +31,24 @@ void UndercarriageDriveMode::setCenter(double x, double y) {
 
 	this->virtual_center_x = x;
 	this->virtual_center_y = y;    
+
+	this->r_min = 0.4;
 }
 
 void UndercarriageDriveMode::set_min_turning_radius(double r_min) {
 }
 
+double absolute_value__todo_y_u_no_working(double x) {
+    if (x < 0.0) return -x;
+	return x;
+}
+
 void UndercarriageDriveMode::apply(double v_x_in, double v_y_in, double r_z_in, 
 			 double& v_x_out, double& v_y_out, double& r_z_out) {
+	ROS_INFO("mode: %d", (int)this->mode);
+	ROS_INFO("apply on %lf %lf %lf", v_x_in, v_y_in, r_z_in);
 	if (this->mode == OMNIDIRECTIONAL) {
+	    ROS_INFO("OMNI. Doing nothing.");
 		v_x_out = v_x_in;
 		v_y_out = v_y_in;
 		r_z_out = r_z_in;
@@ -52,13 +64,8 @@ void UndercarriageDriveMode::apply(double v_x_in, double v_y_in, double r_z_in,
 		// TODO
 		// With exotic gackermanns, a basis change is to come here.
 	}
-	else {
-		// Just aliases.
-		const double x = this->virtual_center_x;
-		const double y = this->virtual_center_y;
-		
+	else if (this->mode == ACKERMANN) {
 		// TODO. v_lon will not have to be parallel to v_x.
-		double v_lon = v_x_in;
 		double v_lat = 0.0;
 		double v_rot = r_z_in;
 		// TODO
@@ -69,26 +76,43 @@ void UndercarriageDriveMode::apply(double v_x_in, double v_y_in, double r_z_in,
 		// center is.
 		// For now, I ignore v_lat.
 	
-		if (abs(v_lon / v_rot) < this->r_min) {
+		ROS_INFO("abs vx/vr %lf", absolute_value__todo_y_u_no_working(v_x_in / v_rot));
+		if (absolute_value__todo_y_u_no_working(v_x_in / v_rot) < this->r_min) {
 			// Trying to turn with a radius smaller than the minimum.
 			// We need to clip v_rot
 
-			double max_s_rot = abs(v_lon / this->r_min);
-			v_rot = max_s_rot * v_rot / abs(v_rot);
+			double max_v_rot = absolute_value__todo_y_u_no_working(v_x_in / this->r_min);
+			v_rot = max_v_rot * v_rot / absolute_value__todo_y_u_no_working(v_rot);
+			ROS_INFO("Tried to turn with radius smaller than allowed. New v_rot: %lf", v_rot);
 		}
 	
-		v_x_out = v_lon;
-		v_y_out = -v_rot * x;
+		v_x_out = v_x_in;
+		v_y_out = -v_rot * this->virtual_center_x;
 		r_z_out = v_rot;
 	}	
+	else { // if (this->mode == DIFFERENTIAL) { TODO clean up
+		v_x_out = v_x_in;
+		v_y_out = - r_z_in * this->virtual_center_x;
+		r_z_out = r_z_in;
+	}	
+	ROS_INFO("Done. %lf %lf %lf", v_x_out, v_y_out, r_z_out);
 }
 
 bool UndercarriageDriveMode::config(cob_omni_drive_controller::ucdm_cmd::Request& req,
 									cob_omni_drive_controller::ucdm_cmd::Response& res) {
-	// just an echo server for now
-	res.mode = req.mode;
-	res.virtual_center_x = req.virtual_center_x;
-	res.virtual_center_y = req.virtual_center_y;
+	switch (res.mode = req.mode) {
+		case 0: this->mode = OMNIDIRECTIONAL; break;
+		case 1: this->mode = ACKERMANN; break;
+		case 2: this->mode = DIFFERENTIAL; break;
+		default: 
+			ROS_INFO("UCDM config: Invalid mode.");
+			res.mode = -1;
+			break;
+	}
+
+	res.virtual_center_x = this->virtual_center_x = req.virtual_center_x;
+	res.virtual_center_y = this->virtual_center_y = req.virtual_center_y;
 	res.direction = req.direction;
+	ROS_INFO("UCDM config done.");
 	return true;
 }
