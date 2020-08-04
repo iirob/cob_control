@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 #include <cob_omni_drive_controller/param_parser.h>
 #include <cob_omni_drive_controller/UndercarriageCtrlGeomROS.h>
 #include <urdf/model.h>
@@ -24,6 +23,10 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Vector3.h>
+
+#include <ros/ros.h>
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
 
 class MergedXmlRpcStruct : public XmlRpc::XmlRpcValue{
     MergedXmlRpcStruct(const XmlRpc::XmlRpcValue& a) :XmlRpc::XmlRpcValue(a){ assertStruct(); }
@@ -169,12 +172,39 @@ bool parseWheelGeom(WheelGeom & geom, XmlRpc::XmlRpcValue &wheel, MergedXmlRpcSt
         return false;
     }
 
+    double deg;
+    read_with_default(deg, "wheel_angle_offset_to_plf_x", wheel, 0.0);
+    geom.dWheelAngleFromPlfXRad = angles::from_degrees(deg);
+
     if(steer_pos.z == 0){
         ROS_ERROR_STREAM("wheel_radius must be non-zero");
         return false;
     }
-
     ROS_DEBUG_STREAM(geom.steer_name<<" steer_pos \tx:"<<steer_pos.x<<" \ty:"<<steer_pos.y<<" \tz:"<<steer_pos.z);
+
+    std::string controller_frame;
+    std::string fdm_link;
+    read_with_default(controller_frame, "controller_frame", wheel, std::string("base_link"));
+    if (read_with_default(fdm_link, "fdm_link", wheel, std::string())){
+        tf2_ros::Buffer tf2Buffer;
+        tf2_ros::TransformListener tf2Listener(tf2Buffer);
+        geometry_msgs::TransformStamped transform;
+
+        for (int i=1; i <= 10; i++) {
+            try {
+                transform = tf2Buffer.lookupTransform(controller_frame, fdm_link, ros::Time(0));
+                steer_pos.x = transform.transform.translation.x;
+                steer_pos.y = transform.transform.translation.y;
+                ROS_DEBUG_STREAM("My positions: "<<geom.steer_name<<" steer_pos \tx:"<<steer_pos.x<<" \ty:"<<steer_pos.y<<" \tz:"<<steer_pos.z);
+                break;
+            }
+            catch (tf2::TransformException &ex) {
+                ROS_WARN_DELAYED_THROTTLE(3, "!!!ParamParser (%d. try): could not get dynamic transformation!!!: %s", i, ex.what());
+                ros::Duration(1).sleep();
+                continue;
+            }
+        }
+    }
 
     geom.dWheelXPosMM = steer_pos.x * 1000;
     geom.dWheelYPosMM = steer_pos.y * 1000;

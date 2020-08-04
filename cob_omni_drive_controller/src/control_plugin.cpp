@@ -99,7 +99,7 @@ public:
         }
         // these function don't get locked
         void setForAll(SteerCtrlConfig &config, uint32_t /*level*/) {
-            ROS_INFO("configure all steers: s: %lf, d: %lf, m: %lf, v: %lf, a: %lf", config.spring, config.damp, config.virt_mass, config.d_phi_max, config.dd_phi_max);
+            ROS_DEBUG("configure all steers: s: %lf, d: %lf, m: %lf, v: %lf, a: %lf", config.spring, config.damp, config.virt_mass, config.d_phi_max, config.dd_phi_max);
             for(size_t i=0; i< pos_ctrl_params.size(); ++i) {
                 copy(pos_ctrl_params[i], config);
                 if(!reconfigure_server_axes_.empty()){

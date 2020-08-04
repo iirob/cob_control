@@ -45,7 +45,7 @@ public:
 protected:
     bool setup(const std::vector<typename Controller::WheelParams> &wheel_params){
         if (wheel_params.size() < 3){
-            ROS_ERROR("At least three wheel are needed.");
+            ROS_ERROR("At least three wheels are needed.");
             return false;
         }
         wheel_states_.resize(wheel_params.size());

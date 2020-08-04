@@ -47,11 +47,12 @@ double getWeightedDelta(double current_position, double old_target, double new_t
     // 2nd which set point is closest to last set point
     // "fitness criteria" to choose optimal set point:
     // calculate accumulted (+ weighted) difference between targets, current config. and last command
-    return 0.6*fabs(dtempDeltaPhi1RAD) + 0.4*fabs(dtempDeltaPhiCmd1RAD);
+    return 0.95*fabs(dtempDeltaPhi1RAD) + 0.05*fabs(dtempDeltaPhiCmd1RAD);
 }
 
 void WheelData::updateState(const WheelState &state){
     state_ = state;
+    state_.dAngGearSteerRad -= geom_.dWheelAngleFromPlfXRad;
 
     // calculate current geometry of robot (exact wheel position, taking into account steering offset of wheels)
     m_dExWheelXPosMM = geom_.dWheelXPosMM + geom_.dDistSteerAxisToDriveWheelMM * sin(state_.dAngGearSteerRad);
@@ -114,6 +115,7 @@ void CtrlData::setTarget(const PlatformState &plt_state){
     // Translational Portion
     double dtempAxVelXRobMMS = plt_state.dVelLongMMS;
     double dtempAxVelYRobMMS = plt_state.dVelLatMMS;
+
     // Rotational Portion
     dtempAxVelXRobMMS += plt_state.dRotRobRadS * m_dExWheelDistMM * -sin(m_dExWheelAngRad);
     dtempAxVelYRobMMS += plt_state.dRotRobRadS * m_dExWheelDistMM * cos(m_dExWheelAngRad);
@@ -130,7 +132,6 @@ void CtrlData::setTarget(const PlatformState &plt_state){
                                         (dtempAxVelYRobMMS * dtempAxVelYRobMMS) ) / geom_.dRadiusWheelMM;
     // now adapt to direction (forward/backward) of wheel
     double dVelGearDriveTarget2RadS = -dVelGearDriveTarget1RadS;
-
 
     if(getWeightedDelta(state_.dAngGearSteerRad,  m_dAngGearSteerTargetRad, dAngGearSteerTarget1Rad)
         <= getWeightedDelta(state_.dAngGearSteerRad, m_dAngGearSteerTargetRad, dAngGearSteerTarget2Rad))

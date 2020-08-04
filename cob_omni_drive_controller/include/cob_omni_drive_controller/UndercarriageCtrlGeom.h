@@ -61,6 +61,11 @@ struct WheelGeom{
     double dRadiusWheelMM;
     double dDistSteerAxisToDriveWheelMM;
 
+    /** Angle from the wheels vertical Axis of the Wheels' Steering Axis'
+    *  to Platform X Coordinate (XZ-Plane) in radians.
+    *  This additionally configures the offset defined in driver
+    */
+    double dWheelAngleFromPlfXRad;
 };
 struct WheelData {
     WheelGeom geom_;

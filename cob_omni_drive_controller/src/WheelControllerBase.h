@@ -45,10 +45,16 @@ public:
             ROS_ERROR_STREAM("max_rot_velocity must be non-negative.");
             return false;
         }
+        if(max_vel_trans_ == 0){
+            ROS_DEBUG_STREAM("Rotational velocity is not limited!");
+        }
         controller_nh.param("max_trans_velocity", max_vel_trans_, 0.0);
         if(max_vel_trans_ < 0){
             ROS_ERROR_STREAM("max_trans_velocity must be non-negative.");
             return false;
+        }
+        if(max_vel_trans_ == 0){
+            ROS_DEBUG_STREAM("Transnational velocity is not limited!");
         }
         double timeout;
         controller_nh.param("timeout", timeout, 1.0);
